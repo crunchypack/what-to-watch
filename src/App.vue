@@ -5,7 +5,7 @@
       <router-link to="/about">About</router-link>
     </div>
     <div class="logo">
-      <b-img fluid-alt="WTW logo" src="./assets/logo.png"/>
+      <img alt="WTW logo" src="./assets/logo.png">
     </div>
     <router-view/>
   </div>
@@ -18,5 +18,11 @@
 .logo img {
   display: block;
   margin: auto;
+}
+@media screen and (max-width: 600px) {
+  .logo img {
+    width: 100%;
+    margin: 0;
+  }
 }
 </style>
