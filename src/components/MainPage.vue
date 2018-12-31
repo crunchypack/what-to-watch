@@ -138,7 +138,7 @@ export default {
          */
       axios({
         method: "GET",
-        url: "http://www.omdbapi.com/?t=" + title + "&apikey=dabd7b02"
+        url: "https://www.omdbapi.com/?t=" + title + "&apikey=dabd7b02"
       }).then(res => {
         // Add poster url and ratings from rotten tomatoes to two arrays
         this.poster.push(title + " " + res.data.Poster);
