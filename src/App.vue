@@ -5,7 +5,7 @@
       <router-link to="/about">About</router-link>
     </div>
     <div class="logo">
-      <img alt="Vue logo" src="./assets/logo.png">
+      <b-img fluid-alt="WTW logo" src="./assets/logo.png"/>
     </div>
     <router-view/>
   </div>
