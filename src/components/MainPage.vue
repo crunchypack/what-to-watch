@@ -1,22 +1,31 @@
 <template>
+  <!-- Main div -->
   <div class="main">
     <h1>Movies</h1>
+    <!-- Searchbar -->
     <b-container fluid class="search">
       <b-row>
         <b-col sm="3">
           <label class="big">Search Movies</label>
         </b-col>
         <b-col sm="6">
+          <!-- input field two-way bound to search variable-->
           <b-form-input
             type="text"
             v-model="search"
             placeholder="Enter title, actor, director, genre or service (Netflix or Amazon Prime)"
           ></b-form-input>
+          <!--END input field-->
         </b-col>
       </b-row>
     </b-container>
+    <!--END Searchbar-->
+    <!-- b-card-group start -->
     <b-card-group>
+      <!-- div, one created for every movie -->
       <div v-for="(movie, index) in searchedMovies" :key="index" class="movie">
+        <!-- b-card start -->
+        <!-- Calling getPoster(title) with current movie title to get the image url in the img-src attribute -->
         <b-card
           no-body
           style="max-width: 20rem"
@@ -25,11 +34,14 @@
           img-alt="Movie poster"
           img-top
         >
+          <!-- card contents -->
+          <!-- using the for loop dynamically write out movie title, description and so on... -->
           <h4 slot="header">{{movie.title}}</h4>
           <b-card-body>
             <p class="card-text">{{movie.desc}}</p>
           </b-card-body>
           <b-list-group flush>
+            <!-- starring is an array so annother for loop is required -->
             <b-list-group-item v-for="(cast, index) in movie.starring" :key="index">{{cast}}</b-list-group-item>
             <b-list-group-item>
               <span class="dir">Director:</span>
@@ -43,12 +55,15 @@
           <b-card-body>
             IMBb:
             <a :href="movie.url" class="card-link" target="_blank">{{movie.title}}</a>
-            <p>
-              Tomato score:
+            <p>Tomato score:
+              <!-- Calling getRating(title) with current movie title to get rating  -->
               <span class="rating">{{getRating(movie.title)}}</span>
             </p>
+            <!-- END card contents -->
           </b-card-body>
+          <!--END b-card -->
         </b-card>
+        <!-- END div -->
       </div>
     </b-card-group>
   </div>
