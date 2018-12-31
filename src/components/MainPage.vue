@@ -65,7 +65,9 @@
         </b-card>
         <!-- END div -->
       </div>
+      <!-- b-card-group END -->
     </b-card-group>
+    <!-- Main div END -->
   </div>
 </template>
 
