@@ -50,5 +50,11 @@
     width: 100%;
     margin: 0;
   }
+  .footer {
+    width: 100%;
+  }
+  .footer div {
+    width: 100%;
+  }
 }
 </style>
