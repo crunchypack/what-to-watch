@@ -44,7 +44,11 @@
             <!-- starring is an array so annother for loop is required -->
             <b-list-group-item v-for="(cast, index) in movie.starring" :key="index">{{cast}}</b-list-group-item>
             <b-list-group-item>
-              <span class="dir">Director:</span>
+              <span class="bold">Released:</span>
+              {{movie.year}}
+            </b-list-group-item>
+            <b-list-group-item>
+              <span class="bold">Director:</span>
               {{movie.director}}
             </b-list-group-item>
             <b-list-group-item>
@@ -204,7 +208,7 @@ export default {
   width: 100%;
   margin: 0 auto;
 }
-.dir {
+.bold {
   font-weight: bold;
 }
 body {
