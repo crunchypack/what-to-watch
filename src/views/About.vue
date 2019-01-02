@@ -11,3 +11,10 @@
     <p>The movies for this site refrences the US Amazon Prime Video service. So they may not be available if you own a subscription outside the US.</p>
   </div>
 </template>
+<style scoped>
+.about {
+  width: 75%;
+  margin: auto;
+  padding: 5%;
+}
+</style>

@@ -8,6 +8,22 @@
       <img alt="WTW logo" src="./assets/logo.png">
     </div>
     <router-view/>
+    <div class="footer">
+      <slot name="footer">
+        <div>
+          Site created by
+          <a href="mailto:simon.wolf.lobo@gmail.com">Simon Lobo</a>
+        </div>
+        <div>
+          Content licensed under
+          <a
+            href="https://creativecommons.org/licenses/by-nc/4.0/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >CC BY-NC 4.0</a>
+        </div>
+      </slot>
+    </div>
   </div>
 </template>
 
@@ -17,6 +33,16 @@
 }
 .logo img {
   display: block;
+  margin: auto;
+}
+.footer {
+  width: 50%;
+  font-size: 80%;
+  margin: 0 auto;
+  padding: 10%;
+}
+.footer div {
+  width: 50%;
   margin: auto;
 }
 @media screen and (max-width: 600px) {
