@@ -95,7 +95,12 @@ export default {
       this.movies = res.data;
       // Run function for each movie in the database
       this.movies.forEach(title => {
-        this.fillIMDb(title.title);
+        if (title.title.includes("&")) {
+          let temp = title.title.replace("&", "%26");
+          this.fillIMDb(temp);
+        } else {
+          this.fillIMDb(title.title);
+        }
       });
     });
   },
@@ -143,8 +148,16 @@ export default {
         url: "https://www.omdbapi.com/?t=" + title + "&apikey=dabd7b02"
       }).then(res => {
         // Add poster url and ratings from rotten tomatoes to two arrays
+        if (title.includes("%26")) {
+          title = title.replace("%26", "&");
+        }
         this.poster.push(title + " " + res.data.Poster);
-        this.ratings.push(title + " " + res.data.Ratings[1].Value);
+        // Sometimes rotten tomatoes score is not available
+        try {
+          this.ratings.push(title + " " + res.data.Ratings[1].Value);
+        } catch {
+          this.ratings.push(title + "  N/A");
+        }
       });
     },
     // get poster url
