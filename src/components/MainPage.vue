@@ -3,7 +3,7 @@
   <div class="main">
     <h1>Movies</h1>
     <!-- Searchbar -->
-    <b-container fluid class="search">
+    <b-container>
       <b-row>
         <b-col sm="3">
           <label class="big">Search Movies</label>
@@ -18,6 +18,15 @@
           <!--END input field-->
         </b-col>
       </b-row>
+      <br>
+      <b-row class="justify-content-md-center">
+        <b-col col lg="1">
+          <b-button :variant="'success'" @click="search='Netflix'">Netflix</b-button>
+        </b-col>
+        <b-col col lg="1">
+          <b-button :variant="'success'" @click="search='Amazon'">Amazon</b-button>
+        </b-col>
+      </b-row>
     </b-container>
     <!--END Searchbar-->
     <!-- b-card-group start -->
@@ -30,7 +39,7 @@
           no-body
           style="max-width: 20rem"
           :footer="'Genre: '+movie.genre"
-          :img-src="getPoster(movie.title)"
+          :img-src="getPoster(movie.title,movie.year)"
           img-alt="Movie poster"
           img-top
         >
@@ -42,20 +51,22 @@
           </b-card-body>
           <b-list-group flush>
             <!-- starring is an array so annother for loop is required -->
-            <b-list-group-item v-for="(cast, index) in movie.starring" :key="index">{{cast}}</b-list-group-item>
+            <b-list-group-item v-for="(cast, index) in movie.starring" :key="index">
+              <span @click="search=cast" class="clickable">{{cast}}</span>
+            </b-list-group-item>
             <b-list-group-item>
               <span class="bold">Released:</span>
               {{movie.year}}
             </b-list-group-item>
             <b-list-group-item>
               <span class="bold">Director:</span>
-              {{movie.director}}
+              <span @click="search=movie.director" class="clickable">{{" "+movie.director}}</span>
             </b-list-group-item>
             <b-list-group-item style="background-color:#46bf68" v-if="movie.available[0] != null">
               <span class="bold">Available:</span>
               <span v-for="(stream, i) in movie.available" :key="i">
-                <span v-if="i==1">{{", "+ stream}}</span>
-                <span v-else>{{" "+ stream}}</span>
+                <span @click="search=stream" v-if="i==1" class="stream">{{", "+ stream}}</span>
+                <span @click="search=stream" v-else class="stream">{{" "+ stream}}</span>
               </span>
             </b-list-group-item>
             <b-list-group-item style="background-color:#bf464c" v-else>
@@ -67,7 +78,7 @@
             <a :href="movie.url" class="card-link" target="_blank">{{movie.title}}</a>
             <p>Tomato score:
               <!-- Calling getRating(title) with current movie title to get rating  -->
-              <span class="rating">{{getRating(movie.title)}}</span>
+              <span class="rating">{{getRating(movie.title,movie.year)}}</span>
             </p>
             <!-- END card contents -->
           </b-card-body>
@@ -107,9 +118,9 @@ export default {
       this.movies.forEach(title => {
         if (title.title.includes("&")) {
           let temp = title.title.replace("&", "%26");
-          this.fillIMDb(temp);
+          this.fillIMDb(temp, title.year);
         } else {
-          this.fillIMDb(title.title);
+          this.fillIMDb(title.title, title.year);
         }
       });
     });
@@ -134,6 +145,7 @@ export default {
         for (let i = 0; i < movie.genre.length; i++) {
           final += movie.genre[i].match(filter);
         }
+
         // return filtered array
         return final;
       });
@@ -142,7 +154,7 @@ export default {
   // Functions
   methods: {
     // get imdb data
-    fillIMDb: function(title) {
+    fillIMDb: function(title, year) {
       // Ajax get call to API omdbapi
       /** example part of response
          * {"Title":"Star Wars: The Last Jedi",
@@ -155,23 +167,26 @@ export default {
          */
       axios({
         method: "GET",
-        url: "https://www.omdbapi.com/?t=" + title + "&apikey=dabd7b02"
+        url:
+          "https://www.omdbapi.com/?t=" + title + "&apikey=dabd7b02&y=" + year
       }).then(res => {
         // Add poster url and ratings from rotten tomatoes to two arrays
         if (title.includes("%26")) {
           title = title.replace("%26", "&");
         }
-        this.poster.push(title + " " + res.data.Poster);
+        this.poster.push(title + " " + year + " " + res.data.Poster);
         // Sometimes rotten tomatoes score is not available
         try {
-          this.ratings.push(title + " " + res.data.Ratings[1].Value);
+          this.ratings.push(
+            title + " " + year + " " + res.data.Ratings[1].Value
+          );
         } catch {
-          this.ratings.push(title + "  N/A");
+          this.ratings.push(title + " " + year + " " + "  N/A");
         }
       });
     },
     // get poster url
-    getPoster: function(title) {
+    getPoster: function(title, year) {
       var source;
       // Gag movie
       if (title == "Natalies Crazy Cats") {
@@ -180,9 +195,9 @@ export default {
         // check the array
         this.poster.forEach(item => {
           // if it includes title
-          if (item.includes(title)) {
+          if (item.includes(title + " " + year)) {
             // remove title and keep url
-            source = item.split(title + " ").pop();
+            source = item.split(title + " " + year + " ").pop();
           }
         });
       }
@@ -190,14 +205,14 @@ export default {
       return source;
     },
     // same as previous function but for ratings
-    getRating: function(title) {
+    getRating: function(title, year) {
       var rating;
       if (title == "Natalies Crazy Cats") {
         rating = "100%";
       } else {
         this.ratings.forEach(item => {
-          if (item.includes(title)) {
-            rating = item.split(title + " ").pop();
+          if (item.includes(title + " " + year)) {
+            rating = item.split(title + " " + year + " ").pop();
           }
         });
       }
@@ -213,6 +228,22 @@ export default {
 #main {
   width: 100%;
   margin: 0 auto;
+}
+.clickable {
+  color: rgb(19, 128, 230);
+  font-style: italic;
+}
+.clickable:hover {
+  cursor: pointer;
+  color: rgb(4, 68, 128);
+}
+.stream {
+  color: rgb(27, 25, 25);
+  font-weight: bold;
+}
+.stream:hover {
+  cursor: pointer;
+  color: rgb(255, 255, 255);
 }
 .bold {
   font-weight: bold;
