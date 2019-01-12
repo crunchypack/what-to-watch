@@ -19,12 +19,12 @@
         </b-col>
       </b-row>
       <br>
-      <b-row class="justify-content-md-center">
-        <b-col col lg="1">
-          <b-button :variant="'success'" @click="search='Netflix'">Netflix</b-button>
+      <b-row class="text-center">
+        <b-col col>
+          <b-button align="center" :variant="'success'" @click="searchAll('Netflix')">Netflix</b-button>
         </b-col>
-        <b-col col lg="1">
-          <b-button :variant="'success'" @click="search='Amazon'">Amazon</b-button>
+        <b-col col>
+          <b-button align="center" :variant="'success'" @click="searchAll('Amazon')">Amazon</b-button>
         </b-col>
       </b-row>
     </b-container>
@@ -37,7 +37,6 @@
         <!-- Calling getPoster(title) with current movie title to get the image url in the img-src attribute -->
         <b-card
           no-body
-          style="max-width: 20rem"
           :footer="'Genre: '+movie.genre"
           :img-src="getPoster(movie.title,movie.year)"
           img-alt="Movie poster"
@@ -52,7 +51,7 @@
           <b-list-group flush>
             <!-- starring is an array so annother for loop is required -->
             <b-list-group-item v-for="(cast, index) in movie.starring" :key="index">
-              <span @click="search=cast" class="clickable">{{cast}}</span>
+              <span @click="searchAll(cast)" class="clickable">{{cast}}</span>
             </b-list-group-item>
             <b-list-group-item>
               <span class="bold">Released:</span>
@@ -60,13 +59,15 @@
             </b-list-group-item>
             <b-list-group-item>
               <span class="bold">Director:</span>
-              <span @click="search=movie.director" class="clickable">{{" "+movie.director}}</span>
+              <span @click="searchAll(movie.director)" class="clickable">{{" "+movie.director}}</span>
             </b-list-group-item>
             <b-list-group-item style="background-color:#46bf68" v-if="movie.available[0] != null">
               <span class="bold">Available:</span>
               <span v-for="(stream, i) in movie.available" :key="i">
-                <span @click="search=stream" v-if="i==1" class="stream">{{", "+ stream}}</span>
-                <span @click="search=stream" v-else class="stream">{{" "+ stream}}</span>
+                <span @click="searchAll(stream)" v-if="i==1">,
+                  <span class="stream">{{stream}}</span>
+                </span>
+                <span @click="searchAll(stream)" v-else class="stream">{{" "+ stream}}</span>
               </span>
             </b-list-group-item>
             <b-list-group-item style="background-color:#bf464c" v-else>
@@ -90,7 +91,7 @@
     </b-card-group>
     <!-- Main div END -->
   </div>
-</template>
+</template> 
 
 <script>
 // Import axios for ajax requests
@@ -218,6 +219,10 @@ export default {
       }
 
       return rating;
+    },
+    searchAll: function(s) {
+      this.search = s;
+      window.scrollTo(0, 0);
     }
   }
 };
@@ -228,6 +233,9 @@ export default {
 #main {
   width: 100%;
   margin: 0 auto;
+}
+.card {
+  width: 20rem;
 }
 .clickable {
   color: rgb(19, 128, 230);
@@ -260,5 +268,11 @@ h1 {
 }
 .movie {
   margin: 1%;
+}
+@media screen and (max-width: 800px) {
+  .card {
+    width: 70%;
+    margin: 0 auto;
+  }
 }
 </style>
