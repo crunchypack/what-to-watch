@@ -51,9 +51,15 @@
               <span class="bold">Director:</span>
               {{movie.director}}
             </b-list-group-item>
-            <b-list-group-item>
-              Available:
-              <span v-for="(stream, i) in movie.available" :key="i">{{stream+" "}}</span>
+            <b-list-group-item style="background-color:#46bf68" v-if="movie.available[0] != null">
+              <span class="bold">Available:</span>
+              <span v-for="(stream, i) in movie.available" :key="i">
+                <span v-if="i==1">{{", "+ stream}}</span>
+                <span v-else>{{" "+ stream}}</span>
+              </span>
+            </b-list-group-item>
+            <b-list-group-item style="background-color:#bf464c" v-else>
+              <span class="bold">Not available</span>
             </b-list-group-item>
           </b-list-group>
           <b-card-body>
