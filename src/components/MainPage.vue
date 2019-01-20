@@ -35,22 +35,17 @@
       <div v-for="(movie, index) in searchedMovies" :key="index" class="movie">
         <!-- b-card start -->
         <!-- Calling getPoster(title) with current movie title to get the image url in the img-src attribute -->
-        <b-card
-          no-body
-          :footer="'Genre: '+movie.genre"
-          :img-src="getPoster(movie.title,movie.year)"
-          img-alt="Movie poster"
-          img-top
-        >
+        <b-card no-body :img-src="getPoster(movie.title,movie.year)" img-alt="Movie poster" img-top>
           <!-- card contents -->
           <!-- using the for loop dynamically write out movie title, description and so on... -->
-          <h4 slot="header">{{movie.title}}</h4>
-          <b-card-body>
+          <h4 slot="header" class="view-item" @click="showHide(movie)">{{movie.title}}</h4>
+
+          <b-card-body v-if="movie.visible">
             <p class="card-text">{{movie.desc}}</p>
           </b-card-body>
-          <b-list-group flush>
+          <b-list-group flush v-if="movie.visible">
             <!-- starring is an array so annother for loop is required -->
-            <b-list-group-item v-for="(cast, index) in movie.starring" :key="index">
+            <b-list-group-item v-for="(cast, c) in movie.starring" :key="c">
               <span @click="searchAll(cast)" class="clickable">{{cast}}</span>
             </b-list-group-item>
             <b-list-group-item>
@@ -61,10 +56,13 @@
               <span class="bold">Director:</span>
               <span @click="searchAll(movie.director)" class="clickable">{{" "+movie.director}}</span>
             </b-list-group-item>
+          </b-list-group>
+          <b-list-group>
             <b-list-group-item style="background-color:#46bf68" v-if="movie.available[0] != null">
               <span class="bold">Available:</span>
               <span v-for="(stream, i) in movie.available" :key="i">
-                <span @click="searchAll(stream)" v-if="i==1">,
+                <span @click="searchAll(stream)" v-if="i==1">
+                  ,
                   <span class="stream">{{stream}}</span>
                 </span>
                 <span @click="searchAll(stream)" v-else class="stream">{{" "+ stream}}</span>
@@ -74,15 +72,22 @@
               <span class="bold">Not available</span>
             </b-list-group-item>
           </b-list-group>
-          <b-card-body>
+          <b-card-body v-if="movie.visible">
             IMBb:
             <a :href="movie.url" class="card-link" target="_blank">{{movie.title}}</a>
             <p>Tomato score:
               <!-- Calling getRating(title) with current movie title to get rating  -->
               <span class="rating">{{getRating(movie.title,movie.year)}}</span>
             </p>
-            <!-- END card contents -->
           </b-card-body>
+          <b-card-footer v-if="movie.visible">
+            <div v-for="(genre, g) in movie.genre" :key="g">
+              <span v-if="g != movie.genre.length-1">
+                <span @click="searchAll(genre)" class="clickable">{{genre}}</span>,
+              </span>
+              <span v-else class="clickable" @click="searchAll(genre)">{{genre}}</span>
+            </div>
+          </b-card-footer>
           <!--END b-card -->
         </b-card>
         <!-- END div -->
@@ -123,6 +128,7 @@ export default {
         } else {
           this.fillIMDb(title.title, title.year);
         }
+        title["visible"] = false;
       });
     });
   },
@@ -221,8 +227,17 @@ export default {
       return rating;
     },
     searchAll: function(s) {
+      this.movies.forEach(movie => {
+        movie.visible = false;
+      });
+
       this.search = s;
       window.scrollTo(0, 0);
+    },
+    showHide: function(movie) {
+      movie.visible = !movie.visible;
+      this.search = this.search + " ";
+      this.search = this.search.slice(0, -1);
     }
   }
 };
@@ -244,6 +259,13 @@ export default {
 .clickable:hover {
   cursor: pointer;
   color: rgb(4, 68, 128);
+}
+.view-item {
+  color: rgb(4, 59, 4);
+}
+.view-item:hover {
+  cursor: pointer;
+  color: hotpink;
 }
 .stream {
   color: rgb(27, 25, 25);
