@@ -109,6 +109,11 @@ export default {
     return {
       // data
       service: [],
+      sortBy: [
+        { value: "title", text: "Title" },
+        { value: "year", text: "Year" }
+      ],
+      sort: "",
       options: ["Netflix", "Amazon Prime"],
       movies: [],
       search: "",
