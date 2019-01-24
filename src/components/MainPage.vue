@@ -19,13 +19,15 @@
         </b-col>
       </b-row>
       <br>
-      <b-row class="text-center">
-        <b-col col>
-          <b-button align="center" :variant="'success'" @click="searchAll('Netflix')">Netflix</b-button>
-        </b-col>
-        <b-col col>
-          <b-button align="center" :variant="'success'" @click="searchAll('Amazon')">Amazon</b-button>
-        </b-col>
+      <b-row class="center">
+        <b-form-group>
+          <b-form-checkbox-group
+            id="servicebox"
+            name="service"
+            v-model="service"
+            :options="options"
+          ></b-form-checkbox-group>
+        </b-form-group>
       </b-row>
     </b-container>
     <!--END Searchbar-->
@@ -106,6 +108,8 @@ export default {
   data() {
     return {
       // data
+      service: [],
+      options: ["Netflix", "Amazon Prime"],
       movies: [],
       search: "",
       poster: [],
@@ -156,6 +160,76 @@ export default {
         // return filtered array
         return final;
       });
+    }
+  },
+  //watcher
+  watch: {
+    service() {
+      if (this.service.length < 1) {
+        axios({
+          method: "GET",
+          url: "https://lobonode.ddns.net/api"
+        }).then(res => {
+          this.movies = res.data;
+          this.poster = [];
+          this.ratings = [];
+          // Run function for each movie in the database
+          this.movies.forEach(title => {
+            if (title.title.includes("&")) {
+              let temp = title.title.replace("&", "%26");
+              this.fillIMDb(temp, title.year);
+            } else {
+              this.fillIMDb(title.title, title.year);
+            }
+            title["visible"] = false;
+          });
+        });
+      } else if (this.service.length == 1) {
+        axios({
+          method: "GET",
+          url: "https://lobonode.ddns.net/api/movies/" + this.service[0] + "/-1"
+        }).then(res => {
+          this.movies = res.data;
+          this.poster = [];
+          this.ratings = [];
+          // Run function for each movie in the database
+          this.movies.forEach(title => {
+            if (title.title.includes("&")) {
+              let temp = title.title.replace("&", "%26");
+              this.fillIMDb(temp, title.year);
+            } else {
+              this.fillIMDb(title.title, title.year);
+            }
+            title["visible"] = false;
+          });
+        });
+      } else if (this.service.length == 2) {
+        axios({
+          method: "GET",
+          url:
+            "https://lobonode.ddns.net/api/movies/" +
+            this.service[0] +
+            "/" +
+            this.service[1] +
+            "/-1"
+        }).then(res => {
+          this.movies = res.data;
+          this.poster = [];
+          this.ratings = [];
+          // Run function for each movie in the database
+          this.movies.forEach(title => {
+            if (title.title.includes("&")) {
+              let temp = title.title.replace("&", "%26");
+              this.fillIMDb(temp, title.year);
+            } else {
+              this.fillIMDb(title.title, title.year);
+            }
+            title["visible"] = false;
+          });
+        });
+      }
+      this.search = this.search + " ";
+      this.search = this.search.slice(0, -1);
     }
   },
   // Functions
@@ -251,6 +325,10 @@ export default {
 }
 .card {
   width: 20rem;
+}
+.center {
+  margin: auto;
+  max-width: 250px;
 }
 .clickable {
   color: rgb(19, 128, 230);
