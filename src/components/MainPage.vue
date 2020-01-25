@@ -245,7 +245,7 @@ export default {
       axios({
         method: "GET",
         url:
-          "https://www.omdbapi.com/?t=" + title + "&apikey=dabd7b02&y=" + year
+          "https://www.omdbapi.com/?t=" + title + "&apikey=d5c6232e&y=" + year
       }).then(res => {
         // Add poster url and ratings from rotten tomatoes to two arrays
         if (title.includes("%26")) {
