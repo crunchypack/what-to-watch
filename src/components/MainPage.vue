@@ -10,15 +10,11 @@
         </b-col>
         <b-col sm="6">
           <!-- input field two-way bound to search variable-->
-          <b-form-input
-            type="text"
-            v-model="search"
-            placeholder="Enter title, actor, director, genre or service (Netflix or Amazon Prime)"
-          ></b-form-input>
+          <b-form-input type="text" v-model="search" placeholder="Title, Actor, Director or Genre"></b-form-input>
           <!--END input field-->
-          Sort by
+          Sort by / Ordenar por
           <b-form-select v-model="sort" :options="sortBy" size="small"/>
-          <b-form-select v-model="asc" :options="descend"/>
+          <b-form-select v-if="popular" v-model="asc" :options="descend"/>
         </b-col>
       </b-row>
       <br>
@@ -39,6 +35,7 @@
       <!-- div, one created for every movie -->
       <div v-for="(movie, index) in searchedMovies" :key="index" class="movie">
         <!-- b-card start -->
+        <span style="visibility:" hidden>{{movie["imdbScore"]= getScore(movie.title,movie.year)}}</span>
         <!-- Calling getPoster(title) with current movie title to get the image url in the img-src attribute -->
         <b-card no-body :img-src="getPoster(movie.title,movie.year)" img-alt="Movie poster" img-top>
           <!-- card contents -->
@@ -66,11 +63,29 @@
             <b-list-group-item style="background-color:#46bf68" v-if="movie.available[0] != null">
               <span class="bold">Available:</span>
               <span v-for="(stream, i) in movie.available" :key="i">
-                <span @click="searchAll(stream)" v-if="i==1">
+                <span v-if="i==1">
                   ,
-                  <span class="stream">{{stream}}</span>
+                  <span class="stream" v-if="stream == 'Netflix'">
+                    <a href="https://www.Netflix.com" target="_blank">{{stream}}</a>
+                  </span>
+                  <span class="stream" v-else>
+                    <a
+                      href="https://www.amazon.com/Amazon-Video/b/ref=sv_atv_logo?node=2858778011&ie=UTF8"
+                      target="_blank"
+                    >{{stream}}</a>
+                  </span>
                 </span>
-                <span @click="searchAll(stream)" v-else class="stream">{{" "+ stream}}</span>
+                <span v-else class="stream">
+                  <span class="stream" v-if="stream == 'Netflix'">
+                    <a href="https://www.Netflix.com" target="_blank">{{" "+ stream}}</a>
+                  </span>
+                  <span class="stream" v-else>
+                    <a
+                      href="https://www.amazon.com/Amazon-Video/b/ref=sv_atv_logo?node=2858778011&ie=UTF8"
+                      target="_blank"
+                    >{{" "+ stream}}</a>
+                  </span>
+                </span>
               </span>
             </b-list-group-item>
             <b-list-group-item style="background-color:#bf464c" v-else>
@@ -80,9 +95,14 @@
           <b-card-body v-if="movie.visible">
             IMBb:
             <a :href="movie.url" class="card-link" target="_blank">{{movie.title}}</a>
-            <p>Tomato score:
+            <p>
+              Tomato score:
               <!-- Calling getRating(title) with current movie title to get rating  -->
               <span class="rating">{{getRating(movie.title,movie.year)}}</span>
+            </p>
+            <p>
+              IMDb Score:
+              {{movie.imdbScore}}
             </p>
           </b-card-body>
           <b-card-footer v-if="movie.visible">
@@ -113,41 +133,30 @@ export default {
       // data
       service: [],
       sortBy: [
-        { value: "title", text: "Title" },
-        { value: "year", text: "Year" }
+        { value: "pop", text: "High rated /Puntaje Alto" },
+        { value: "_id", text: "Date Added / Fecha Agregada" },
+        { value: "title", text: "Title / Título" },
+        { value: "year", text: "Year / Año" }
       ],
-      sort: "title",
+      sort: "_id",
       asc: -1,
       descend: [
-        { value: 1, text: "Ascending" },
-        { value: -1, text: "Descending" }
+        { value: 1, text: "Ascending / Ascendiendo" },
+        { value: -1, text: "Descending / Descendiendo" }
       ],
       options: ["Netflix", "Amazon Prime"],
       movies: [],
       search: "",
       poster: [],
-      ratings: []
+      ratings: [],
+      imdb: [],
+      popular: true
     };
   },
   // Funcions called after instance has been mounted
   mounted() {
     // Get all the movies and store them in an array
-    axios({
-      method: "GET",
-      url: "https://lobonode.ddns.net/api"
-    }).then(res => {
-      this.movies = res.data;
-      // Run function for each movie in the database
-      this.movies.forEach(title => {
-        if (title.title.includes("&")) {
-          let temp = title.title.replace("&", "%26");
-          this.fillIMDb(temp, title.year);
-        } else {
-          this.fillIMDb(title.title, title.year);
-        }
-        title["visible"] = false;
-      });
-    });
+    this.init();
   },
   // Computed functions
   computed: {
@@ -155,24 +164,29 @@ export default {
     searchedMovies: function() {
       let filter = new RegExp(this.search, "i");
       let final;
-      // Filter array
-      return this.movies.filter(movie => {
-        // check title,actor, director, stream service and genre
-        final = movie.title.match(filter);
-        final += movie.director.match(filter);
-        for (let i = 0; i < movie.available.length; i++) {
-          final += movie.available[i].match(filter);
-        }
-        for (let i = 0; i < movie.starring.length; i++) {
-          final += movie.starring[i].match(filter);
-        }
-        for (let i = 0; i < movie.genre.length; i++) {
-          final += movie.genre[i].match(filter);
-        }
+      // If nothing is written
+      if (this.search == "") {
+        return this.movies.filter(movie => {
+          // Return all movies
+          final = movie.title.match(filter);
+          return final;
+        });
+      } else {
+        return this.movies.filter(movie => {
+          // check title,actor, director, stream service and genre
+          final = movie.title.match(filter);
+          final += movie.director.match(filter);
+          for (let i = 0; i < movie.starring.length; i++) {
+            final += movie.starring[i].match(filter);
+          }
+          for (let i = 0; i < movie.genre.length; i++) {
+            final += movie.genre[i].match(filter);
+          }
 
-        // return filtered array
-        return final;
-      });
+          // return filtered array
+          return final;
+        });
+      }
     }
   },
   //watcher
@@ -198,6 +212,24 @@ export default {
   },
   // Functions
   methods: {
+    init: function() {
+      axios({
+        method: "GET",
+        url: "https://lobonode.ddns.net/api/" + this.sort + "/" + this.asc
+      }).then(res => {
+        this.movies = res.data;
+        // Run function for each movie in the database
+        this.movies.forEach(title => {
+          if (title.title.includes("&")) {
+            let temp = title.title.replace("&", "%26");
+            this.fillIMDb(temp, title.year);
+          } else {
+            this.fillIMDb(title.title, title.year);
+          }
+          title["visible"] = false;
+        });
+      });
+    },
     // get imdb data
     fillIMDb: function(title, year) {
       // Ajax get call to API omdbapi
@@ -228,6 +260,7 @@ export default {
         } catch {
           this.ratings.push(title + " " + year + " " + "  N/A");
         }
+        this.imdb.push(title + " " + year + " " + res.data.imdbRating);
       });
     },
     // get poster url
@@ -250,82 +283,58 @@ export default {
       return source;
     },
     updateMovies: function() {
-      if (this.service.length < 1) {
-        axios({
-          method: "GET",
-          url: "https://lobonode.ddns.net/api"
-        }).then(res => {
-          this.movies = res.data;
-          this.poster = [];
-          this.ratings = [];
-          // Run function for each movie in the database
-          this.movies.forEach(title => {
-            if (title.title.includes("&")) {
-              let temp = title.title.replace("&", "%26");
-              this.fillIMDb(temp, title.year);
-            } else {
-              this.fillIMDb(title.title, title.year);
-            }
-            title["visible"] = false;
-          });
-        });
-      } else if (this.service.length == 1) {
-        axios({
-          method: "GET",
-          url:
-            "https://lobonode.ddns.net/api/movies/" +
-            this.service[0] +
-            "/" +
-            this.sort +
-            "/" +
-            this.asc
-        }).then(res => {
-          this.movies = res.data;
-          this.poster = [];
-          this.ratings = [];
-          // Run function for each movie in the database
-          this.movies.forEach(title => {
-            if (title.title.includes("&")) {
-              let temp = title.title.replace("&", "%26");
-              this.fillIMDb(temp, title.year);
-            } else {
-              this.fillIMDb(title.title, title.year);
-            }
-            title["visible"] = false;
-          });
-        });
-      } else if (this.service.length == 2) {
-        axios({
-          method: "GET",
-          url:
-            "https://lobonode.ddns.net/api/movies/" +
-            this.service[0] +
-            "/" +
-            this.service[1] +
-            "/" +
-            this.sort +
-            "/" +
-            this.asc
-        }).then(res => {
-          this.movies = res.data;
-          this.poster = [];
-          this.ratings = [];
-          // Run function for each movie in the database
-          this.movies.forEach(title => {
-            if (title.title.includes("&")) {
-              let temp = title.title.replace("&", "%26");
-              this.fillIMDb(temp, title.year);
-            } else {
-              this.fillIMDb(title.title, title.year);
-            }
-            title["visible"] = false;
-          });
-        });
+      function compare(a, b) {
+        if (a.imdbScore < b.imdbScore) return 1;
+        if (a.imdbScore > b.imdbScore) return -1;
+        return 0;
       }
+      if (this.sort == "pop") {
+        this.popular = false;
+        this.movies.sort(compare);
+      } else {
+        this.popular = true;
+        if (this.service.length < 1) {
+          axios({
+            method: "GET",
+            url: "https://lobonode.ddns.net/api/" + this.sort + "/" + this.asc
+          }).then(res => {
+            this.movies = res.data;
+          });
+        } else if (this.service.length == 1) {
+          axios({
+            method: "GET",
+            url:
+              "https://lobonode.ddns.net/api/movies/" +
+              this.service[0] +
+              "/" +
+              this.sort +
+              "/" +
+              this.asc
+          }).then(res => {
+            this.movies = res.data;
+          });
+        } else if (this.service.length == 2) {
+          axios({
+            method: "GET",
+            url:
+              "https://lobonode.ddns.net/api/movies/" +
+              this.service[0] +
+              "/" +
+              this.service[1] +
+              "/" +
+              this.sort +
+              "/" +
+              this.asc
+          }).then(res => {
+            this.movies = res.data;
+          });
+        }
+      }
+
       this.search = this.search + " ";
       this.search = this.search.slice(0, -1);
     },
-    // same as previous function but for ratings
+    // same as poster function but for ratings
     getRating: function(title, year) {
       var rating;
       if (title == "Natalies Crazy Cats") {
@@ -339,6 +348,23 @@ export default {
       }
 
       return rating;
+    },
+    getScore: function(title, year) {
+      var score;
+      if (title == "Natalies Crazy Cats") {
+        score = "10.0";
+      } else {
+        this.imdb.forEach(item => {
+          if (item.includes(title + " " + year)) {
+            score = item.split(title + " " + year + " ").pop();
+          }
+        });
+      }
+      if (score == "N/A") {
+        score = "5.0";
+      }
+
+      return score;
     },
     searchAll: function(s) {
       this.movies.forEach(movie => {
@@ -385,13 +411,16 @@ export default {
   cursor: pointer;
   color: hotpink;
 }
-.stream {
+.stream,
+a {
   color: rgb(27, 25, 25);
   font-weight: bold;
 }
-.stream:hover {
+.stream:hover,
+a:hover {
   cursor: pointer;
   color: rgb(255, 255, 255);
+  text-decoration: none;
 }
 .bold {
   font-weight: bold;

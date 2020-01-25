@@ -28,6 +28,9 @@
 </template>
 
 <style lang="scss">
+#app {
+  background-color: rgba(224, 220, 220, 0.781);
+}
 #nav {
   text-align: center;
 }
